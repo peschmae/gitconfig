@@ -10,7 +10,7 @@
 
 
 # 1. Check if a file to be commited contains non-ascii characters
-echo -e "\e[0m1. Check if a file to be commited contains non-ascii characters"
+echo -e "\e[34m1. Check if a file to be commited contains non-ascii characters\e[0m"
 # If you want to allow non-ASCII filenames set this variable to true.
 allownonascii=$(git config --bool hooks.allownonascii)
 # Cross platform projects tend to avoid non-ASCII filenames; prevent
@@ -34,44 +34,44 @@ If you know what you are doing you can disable this check using:
 EOF
 	exit 1
 else
-    echo "\e[32mFilename check: passed\e[0m"
+    echo -e "\e[92mFilename check: passed\e[0m"
 fi
 
 
 # 2. Runs `puppet parser validate` on all files to be commited
-echo -e "\e[0m2. Runs 'puppet parser validate' on all files to be commited"
+echo -e "\e[34m2. Runs 'puppet parser validate' on all files to be commited\e[0m"
 puppet_parser_validate=$(puppet parser validate `git diff --cached --name-only`; echo $?)
 if [ "$puppet_parser_validate" != 0 ]; then
     exec 1>&2
-    echo -e "\e[31mPuppet parset validate: failed\e[0m"
+    echo -e "\e[91mPuppet parset validate: failed\e[0m"
     puppet parser validate `git diff --cached --name-only`
     exit 1
 else
-    echo -e "\e[32mPuppet parset validate: passed\e[0m"
+    echo -e "\e[92mPuppet parset validate: passed\e[0m"
 fi
 
 
 # 3. Runs `puppet-lint` on all files to be commited
-echo -e "\e[0m3. Runs 'puppet-lint' on all files to be commited"
+echo -e "\e[34m3. Runs 'puppet-lint' on all files to be commited\e[0m"
 puppet_lint_result=$(puppet-lint `git diff --cached --name-only` --error-level error; echo $?)
 if [ "$puppet_lint_result" != 0 ]; then
     exec 1>&2
-    echo -e "\e[31mPuppet-lint: failed\e[0m"
+    echo -e "\e[91mPuppet-lint: failed\e[0m"
     puppet-lint `git diff --cached --name-only`
     exit 1
 else
-    echo -e "\e[32mPuppet-lint: passed\e[0m"
+    echo -e "\e[92mPuppet-lint: passed\e[0m"
 fi
 
 
 # 4. Check for trailing whitespace in files
-echo -e "\e[0m4. Check for trailing whitespace in files"
+echo -e "\e[34m4. Check for trailing whitespace in files\e[0m"
 whitespace_check_result=$(git diff-index --check --cached `git rev-parse --abbrev-ref HEAD` --;echo $?)
 if [ "$whitespace_check_result" != 0 ]; then
     exec 1>&2
-    echo -e "\e[31mWhitespace check: failed\e[0m"
+    echo -e "\e[91mWhitespace check: failed\e[0m"
     git diff-index --check --cached `git rev-parse --abbrev-ref HEAD` --
     exit 1
 else
-    echo -e "\e[32mWhitespace check: passed\e[0m"
+    echo -e "\e[92mWhitespace check: passed\e[0m"
 fi
