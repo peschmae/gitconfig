@@ -39,7 +39,7 @@ fi
 
 
 # 2. Runs `puppet parser validate` on all files to be commited
-echo "2. Runs `puppet parser validate` on all files to be commited"
+echo "2. Runs 'puppet parser validate' on all files to be commited"
 puppet_parser_validate=$(puppet parser validate `git diff --cached --name-only`; echo $?)
 if [ "$puppet_parser_validate" != 0 ]; then
     exec 1>&2
@@ -52,7 +52,7 @@ fi
 
 
 # 3. Runs `puppet-lint` on all files to be commited
-echo "3. Runs `puppet-lint` on all files to be commited"
+echo "3. Runs 'puppet-lint' on all files to be commited"
 puppet_lint_result=$(puppet-lint `git diff --cached --name-only`; echo $?)
 if [ "$puppet_lint_result" != 0 ]; then
     exec 1>&2
