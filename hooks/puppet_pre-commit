@@ -9,7 +9,7 @@
 #
 number_of_files_changes=$(git diff --cached --name-only --diff-filter=d | wc -l)
 
-if [ "$number_of_files_changes" > 0 ]; then
+if [ "$number_of_files_changes" -gt 0 ]; then
 
     # 1. Check if a file to be commited contains non-ascii characters
     echo -e "\e[34m1. Check if a file to be commited contains non-ascii characters\e[0m"
