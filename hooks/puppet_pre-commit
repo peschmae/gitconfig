@@ -1,0 +1,77 @@
+#!/bin/sh
+#
+# Puppet pre-commit hook
+# This hook, does three things
+#   1. Check if a file to be commited contains non-ascii characters
+#   2. Runs `puppet parser validate` on all files to be commited
+#   3. Runs `puppet-lint` on all files to be commited
+#   4. Check for trailing whitespace in files
+#
+
+
+# 1. Check if a file to be commited contains non-ascii characters
+print "1. Check if a file to be commited contains non-ascii characters"
+# If you want to allow non-ASCII filenames set this variable to true.
+allownonascii=$(git config --bool hooks.allownonascii)
+# Cross platform projects tend to avoid non-ASCII filenames; prevent
+# them from being added to the repository. We exploit the fact that the
+# printable range starts at the space character and ends with tilde.
+if [ "$allownonascii" != "true" ] &&
+	# Note that the use of brackets around a tr range is ok here, (it's
+	# even required, for portability to Solaris 10's /usr/bin/tr), since
+	# the square bracket bytes happen to fall in the designated range.
+	test $(git diff --cached --name-only --diff-filter=A -z \
+	 `git rev-parse --abbrev-ref HEAD` | LC_ALL=C tr -d '[ -~]\0' | wc -c) != 0
+then
+    # Redirect output to stderr.
+    exec 1>&2
+	cat <<\EOF
+Error: Attempt to add a non-ASCII file name.
+This can cause problems if you want to work with people on other platforms.
+To be portable it is advisable to rename the file.
+If you know what you are doing you can disable this check using:
+  git config hooks.allownonascii true
+EOF
+	exit 1
+else
+    echo "Filename check: passed"
+fi
+
+
+# 2. Runs `puppet parser validate` on all files to be commited
+print "2. Runs `puppet parser validate` on all files to be commited"
+puppet_parser_validate=$(puppet parser validate `git diff --cached --name-only`; echo $?)
+if [ "$puppet_parser_validate" != 0 ]; then
+    exec 1>&2
+    echo "Puppet parset validate: failed"
+    puppet parser validate `git diff --cached --name-only`
+    exit 1
+else
+    echo "Puppet parset validate: passed"
+fi
+
+
+# 3. Runs `puppet-lint` on all files to be commited
+print "3. Runs `puppet-lint` on all files to be commited"
+puppet_lint_result=$(puppet-lint `git diff --cached --name-only`; echo $?)
+if [ "$puppet_lint_result" != 0 ]; then
+    exec 1>&2
+    echo "Puppet-lint: failed"
+    puppet-lint `git diff --cached --name-only`
+    exit 1
+else
+    echo "Puppet-lint: passed"
+fi
+
+
+# 4. Check for trailing whitespace in files
+print "4. Check for trailing whitespace in files"
+whitespace_check_result=$(git diff-index --check --cached `git rev-parse --abbrev-ref HEAD` --;echo $?)
+if [ "$whitespace_check_result" != 0 ]; then
+    exec 1>&2
+    echo "Whitespace check: failed"
+    git diff-index --check --cached `git rev-parse --abbrev-ref HEAD` --
+    exit 1
+else
+    echo "Whitespace check: passed"
+fi
